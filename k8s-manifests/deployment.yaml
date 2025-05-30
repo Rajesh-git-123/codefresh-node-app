@@ -1,8 +1,9 @@
-# deployment.yaml example
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: codefresh-node-app
+  labels:
+    app: codefresh-node-app
 spec:
   replicas: 1
   selector:
@@ -14,8 +15,8 @@ spec:
         app: codefresh-node-app
     spec:
       containers:
-      - name: codefresh-node-app
-        image: yourdockerhubusername/codefresh-node-app:latest
+      - name: app
+        image: codefresh-node-app:latest
         ports:
         - containerPort: 3000
         resources:
