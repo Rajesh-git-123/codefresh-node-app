@@ -5,7 +5,7 @@ metadata:
   labels:
     app: codefresh-node-app
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: codefresh-node-app
@@ -16,9 +16,9 @@ spec:
     spec:
       containers:
       - name: app
-        image: codefresh-node-app:latest
+        image: us-east1-docker.pkg.dev/first-cluster-461402/first-cluster-registry/codefresh-node-app@sha256:5bf1ec57a74024e6408b2d99b93be9634eaa4c47cf34e0dfd3b021b20430af5e
         ports:
-        - containerPort: 3000
+        - containerPort: 8080
         resources:
           requests:
             memory: "64Mi"
