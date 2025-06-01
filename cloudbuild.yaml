@@ -1,12 +1,31 @@
 steps:
+  # Step 1: Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'us-east1-docker.pkg.dev/first-cluster-461402/first-cluster-registry/codefresh-node-app:latest', '.']
+    args: [
+      'build',
+      '-t', 'us-east1-docker.pkg.dev/codefresh-project-123/codefresh-repo/codefresh-node-app:latest',
+      '.'
+    ]
 
+  # Step 2: Push the image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'us-east1-docker.pkg.dev/first-cluster-461402/first-cluster-registry/codefresh-node-app:latest']
+    args: [
+      'push',
+      'us-east1-docker.pkg.dev/codefresh-project-123/codefresh-repo/codefresh-node-app:latest'
+    ]
 
-  - name: 'gcr.io/cloud-builders/kubectl'
-    env:
-      - 'CLOUDSDK_COMPUTE_REGION=us-east1'  
-      - 'CLOUDSDK_CONTAINER_CLUSTER=cluster1'
-    args: ['apply', '-f', 'k8s-manifests/']  
+  # Step 3: Set kubectl context (auth to GKE)
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud container clusters get-credentials codefresh-cluster --zone us-east1-b --project codefresh-project-123 &&
+        kubectl apply -f k8s-manifests/
+
+# Set substitutions if you want reusable variables (optional)
+substitutions:
+  _IMAGE_NAME: codefresh-node-app
+  _REGION: us-east1
+
+
