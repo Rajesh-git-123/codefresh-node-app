@@ -1,0 +1,47 @@
+version: "1.0"
+stages:
+  - build
+  - push
+  - update-manifest
+  - commit
+
+steps:
+  clone_repo:
+    title: Clone Git Repository
+    type: "git-clone"
+    repo: '${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}'
+    revision: '${{CF_BRANCH}}'
+
+  build_image:
+    title: Build Docker Image
+    type: build
+    image_name: "us-east1-docker.pkg.dev/codefresh-project-123/codefresh-repo/codefresh-node-app"
+    tag: "${{CF_SHORT_REVISION}}"
+    dockerfile: codefresh/Dockerfile
+    working_directory: ./codefresh  
+    stage: build
+
+  push_image:
+    title: Push Docker Image
+    type: push
+    candidate: "${{build_image}}"
+    stage: push
+
+  update_deployment_manifest:
+    title: Update Kubernetes manifest with new image tag
+    image: codefresh/cfstep-yq
+    stage: update-manifest
+    commands:
+      - >
+        yq e -i '.spec.template.spec.containers[0].image = "us-east1-docker.pkg.dev/codefresh-project-123/codefresh-repo/codefresh-node-app:${{CF_SHORT_REVISION}}"' k8s-manifests/deployment.yaml
+
+  commit_and_push:
+    title: Commit Updated Manifest to Git
+    type: git-commit
+    stage: commit
+    repo: '${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}'
+    git_user: "codefresh"
+    git_email: "bot@codefresh.io"
+    message: "Update image tag to ${{CF_SHORT_REVISION}}"
+    files:
+      - "k8s-manifests/deployment.yaml"
